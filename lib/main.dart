@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,27 +32,55 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
   static const batteryChannel = MethodChannel('hilo/battery');
 
   String batteryLevel = 'Waiting...';
 
+  Timer? _timer;
+
+  void _initTimer() {
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+          (_) => _getBatteryLevel(),
+    );
+  }
+
+
+
   Future<void> _getBatteryLevel() async {
     int newBatteryLevel = 0;
+
     try {
 
       final arguments = {'name': 'Hilo Abs'};
 
-      newBatteryLevel =
+      // newBatteryLevel =
+      // await batteryChannel.invokeMethod('getBatteryLevel', arguments);
+
+      var a =
       await batteryChannel.invokeMethod('getBatteryLevel', arguments);
-      print('New battery Level : $newBatteryLevel');
-    } on PlatformException catch (e) {
+
+      print('New battery Level : ${a[0]}');
+    } on PlatformException catch (_) {
       newBatteryLevel = -2;
     }
 
     setState(() {
      batteryLevel = '$newBatteryLevel%';
     });
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    _initTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
